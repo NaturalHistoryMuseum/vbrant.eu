@@ -1,0 +1,8 @@
+name = "Remote Issue Tab"
+description = "Integrates with the 'Project Issue' module on another site to display it on this site."
+package = "EDIT"
+version = "6.x-1.0"
+core = "6.x"
+dependencies[] = aggregator
+dependencies[] = uwho_client
+project = "remote_issue_tab"
