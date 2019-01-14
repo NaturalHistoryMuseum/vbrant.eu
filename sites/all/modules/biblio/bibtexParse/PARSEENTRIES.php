@@ -136,7 +136,7 @@ class PARSEENTRIES
   /**
    * @return unknown_type
    */
-  function PARSEENTRIES()
+  function __construct()
   {
     require(drupal_get_path('module', 'biblio') . '/bibtexParse/transtab_latex_unicode.inc.php');
     $this->preamble = $this->strings = $this->undefinedStrings = $this->entries = array();

@@ -6,7 +6,7 @@ class Creators extends PARSECREATORS
     protected  	$typeMap            = array();
     private 	$md5                = array();
 
-	function Creators($init = null)
+	function __construct($init = null)
 	{
 		$this->buildTypeMap();
 		if (is_array($init))
