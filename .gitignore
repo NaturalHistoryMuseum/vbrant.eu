@@ -8,3 +8,4 @@ sites/get.scratchpads.eu
 .settings
 sites/admin.scratchpads.eu/modules/hostmaster
 sites/all/libraries/jquery.ui
+sites/all/drush/drushrc.php
