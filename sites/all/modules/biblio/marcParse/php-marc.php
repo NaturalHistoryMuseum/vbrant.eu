@@ -74,11 +74,11 @@ define("LEADER_LEN", 24);
  * Class to read MARC records from file(s)
  */
 Class File {
-	
+
 	/**
 	 * ========== VARIABLE DECLARATIONS ==========
 	 */
-	
+
 	/**
 	 * Array containing raw records
 	 * @var array
@@ -94,11 +94,11 @@ Class File {
 	 * @var integer
 	 */
 	var $pointer;
-	
+
 	/**
 	 * ========== ERROR FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Croaking function
 	 *
@@ -109,7 +109,7 @@ Class File {
 	function _croak($msg) {
 		trigger_error($msg, E_USER_ERROR);
 	}
-	
+
 	/**
 	 * Fuction to issue warnings
 	 *
@@ -122,7 +122,7 @@ Class File {
 		$this->warn[] = $msg;
 		return $msg;
 	}
-	
+
 	/**
 	 * Get warning(s)
 	 *
@@ -145,10 +145,10 @@ Class File {
 	/**
 	 * ========== PROCESSING FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Return the next raw MARC record
-	 * 
+	 *
 	 * Returns th nexts raw MARC record from the read file, unless all
 	 * records already have been read.
 	 * @return string|false Either a raw record or False
@@ -160,16 +160,16 @@ Class File {
 		if ($this->pointer >= count($this->raw)) {
 			return FALSE;
 		}
-		
+
 		/**
 		 * Read next line
 		 */
 		$usmarc = $this->raw[$this->pointer++];
-	
+
 		// remove illegal stuff that sometimes occurs between records
 		// preg_replace does not know what to do with \x00, thus omitted.
 		$usmarc = preg_replace("/^[\x0a\x0d]+/", "", $usmarc);
-	
+
 		/**
 		 * Record validation
 		 */
@@ -180,10 +180,10 @@ Class File {
 		if ( preg_match("/^\d{5}$/", $reclen) || $reclen != strlen($usmarc) ) {
 			$this->_warn( "Invalid record length \"$reclen\"" );
 		}
-	
+
 		return $usmarc;
 	}
-	
+
 	/**
 	 * Read in MARC record file
 	 *
@@ -207,7 +207,7 @@ Class File {
 			return $this->_warn("Invalid input file: $i");
 		}
 	}
-	
+
 	/**
 	 * Return next Record-object
 	 *
@@ -221,7 +221,7 @@ Class File {
 			return FALSE;
 		}
 	}
-	
+
 	/**
 	 * Decode a given raw MARC record
 	 *
@@ -235,38 +235,38 @@ Class File {
 		if(!preg_match("/^\d{5}/", $text, $matches)) {
 			$this->_croak('Record length "'.substr( $text, 0, 5 ).'" is not numeric');
 		}
-		
+
 		$marc = new Record;
-		
+
 		// Store record length
 		$reclen = $matches[0];
-		
+
 		if($reclen != strlen($text)) {
 			$this->_croak( "Invalid record length: Leader says $reclen bytes, but it's actually ".strlen($text));
 		}
-		
+
 		if (substr($text, -1, 1) != END_OF_RECORD)
 			$this->_croak("Invalid record terminator");
-			
+
 	    // Store leader
 		$marc->leader(substr( $text, 0, LEADER_LEN ));
-		
+
 		// bytes 12 - 16 of leader give offset to the body of the record
 		$data_start = 0 + substr( $text, 12, 5 );
-	
+
 		// immediately after the leader comes the directory (no separator)
 		$dir = substr( $text, LEADER_LEN, $data_start - LEADER_LEN - 1 );  // -1 to allow for \x1e at end of directory
-		
+
 		// character after the directory must be \x1e
 		if (substr($text, $data_start-1, 1) != END_OF_FIELD) {
 			$this->_croak("No directory found");
 		}
-		
+
 		// All directory entries 12 bytes long, so length % 12 must be 0
 		if (strlen($dir) % DIRECTORY_ENTRY_LEN != 0) {
 			$this->_croak("Invalid directory length");
 		}
-		
+
 		// go through all the fields
 		$nfields = strlen($dir) / DIRECTORY_ENTRY_LEN;
 		for ($n=0; $n<$nfields; $n++) {
@@ -274,7 +274,7 @@ Class File {
 			list(, $tagno) = unpack("A3", substr($dir, $n*DIRECTORY_ENTRY_LEN, DIRECTORY_ENTRY_LEN));
 			list(, $len) = unpack("A3/A4", substr($dir, $n*DIRECTORY_ENTRY_LEN, DIRECTORY_ENTRY_LEN));
 			list(, $offset) = unpack("A3/A4/A5", substr($dir, $n*DIRECTORY_ENTRY_LEN, DIRECTORY_ENTRY_LEN));
-			
+
 			// Check directory validity
 			if (!preg_match("/^[0-9A-Za-z]{3}$/", $tagno)) {
 				$this->_croak("Invalid tag in directory: \"$tagno\"");
@@ -288,9 +288,9 @@ Class File {
 			if ($offset + $len > $reclen) {
 				$this->_croak("Directory entry runs off the end of the record tag $tagno");
 			}
-			
+
 			$tagdata = substr( $text, $data_start + $offset, $len );
-			
+
 			if ( substr($tagdata, -1, 1) == END_OF_FIELD ) {
 				# get rid of the end-of-tag character
 				$tagdata = substr($tagdata, 0, -1);
@@ -298,13 +298,13 @@ Class File {
 			} else {
 				$this->_croak("field does not end in end of field character in tag $tagno");
 			}
-	
+
 			if ( preg_match("/^\d+$/", $tagno) && ($tagno < 10) ) {
 				$marc->append_fields(new Field($tagno, $tagdata));
 			} else {
 				$subfields = split(SUBFIELD_INDICATOR, $tagdata);
 				$indicators = array_shift($subfields);
-	
+
 				if ( strlen($indicators) > 2 || strlen( $indicators ) == 0 ) {
 					$this->_warn("Invalid indicators \"$indicators\" forced to blanks for tag $tagno\n");
 					list($ind1,$ind2) = array(" ", " ");
@@ -312,7 +312,7 @@ Class File {
 					$ind1 = substr( $indicators, 0, 1 );
 					$ind2 = substr( $indicators, 1, 1 );
 				}
-	
+
 				// Split the subfield data into subfield name and data pairs
 				$subfield_data = array();
 				foreach ($subfields as $subfield) {
@@ -322,17 +322,17 @@ Class File {
 						$this->_warn( "Entirely empty subfield found in tag $tagno" );
 					}
 				}
-	
+
 				if (!isset($subfield_data)) {
 					$this->_warn( "No subfield data found $location for tag $tagno" );
 				}
-	
+
 				$marc->append_fields(new Field($tagno, $ind1, $ind2, $subfield_data ));
 			}
 		}
 		return $marc;
 	}
-	
+
 	/**
 	 * Get the number of records available in this Record
 	 * @return int The number of records
@@ -363,11 +363,11 @@ Class USMARC Extends File {
  * Create a MARC Record class
  */
 Class Record {
-	
+
 	/**
 	 * ========== VARIABLE DECLARATIONS ==========
 	 */
-	
+
 	/**
 	 * Contain all @link Field objects of the Record
 	 * @var array
@@ -383,11 +383,11 @@ Class Record {
 	 * @var array
 	 */
 	var $warn;
-	
+
 	/**
 	 * ========== ERROR FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Croaking function
 	 *
@@ -398,7 +398,7 @@ Class Record {
 	function _croak($msg) {
 		trigger_error($msg, E_USER_ERROR);
 	}
-	
+
 	/**
 	 * Fuction to issue warnings
 	 *
@@ -411,18 +411,18 @@ Class Record {
 		$this->warn[] = $msg;
 		return $msg;
 	}
-	
+
 	/**
 	 * Return an array of warnings
 	 */
 	function warnings() {
 		return $this->warn;
 	}
-	
+
 	/**
 	 * ========== PROCESSING FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Start function
 	 *
@@ -432,7 +432,7 @@ Class Record {
 		$this->fields = array();
 		$this->ldr = str_repeat(' ', 24);
 	}
-	
+
 	/**
 	 * Get/Set Leader
 	 *
@@ -448,7 +448,7 @@ Class Record {
 			return $this->ldr;
 		}
 	}
-	
+
 	/**
 	 * Append field to existing
 	 *
@@ -463,7 +463,7 @@ Class Record {
 			$this->_croak(sprintf("Given argument must be Field object, but was '%s'", get_class($field)));
 		}
 	}
-	
+
 	/**
 	 * Build Record Directory
 	 *
@@ -509,7 +509,7 @@ Class Record {
 
         return array($fields, $directory, $total, $baseaddress);
 	}
-	
+
 	/**
 	 * Set Leader lengths
 	 *
@@ -522,7 +522,7 @@ Class Record {
 		$this->ldr = substr_replace($this->ldr, '22', 10, 2);
 		$this->ldr = substr_replace($this->ldr, '4500', 20, 4);
 	}
-	
+
 	/**
 	 * Return all Field objects
 	 * @return array Array of Field objects
@@ -530,7 +530,7 @@ Class Record {
 	function fields() {
 		return $this->fields;
 	}
-	
+
 	/**
 	 * Get specific field
 	 *
@@ -545,7 +545,7 @@ Class Record {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Get subfield of Field object
 	 *
@@ -561,7 +561,7 @@ Class Record {
 			return $field->subfield($subfield);
 		}
 	}
-	
+
 	/**
 	 * Delete Field
 	 *
@@ -571,7 +571,7 @@ Class Record {
 	function delete_field($obj) {
 		unset($this->fields[$obj->field]);
 	}
-	
+
 	/**
 	 * Clone record
 	 *
@@ -590,11 +590,11 @@ Class Record {
 
 		return $clone;
 	}
-	
+
 	/**
 	 * ========== OUTPUT FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Formatted representation of Field
 	 *
@@ -626,7 +626,7 @@ Class Record {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Return Raw
 	 *
@@ -636,13 +636,13 @@ Class Record {
 	function raw() {
 		list ($fields, $directory, $reclen, $baseaddress) = $this->_build_dir();
 		$this->leader_lengths($reclen, $baseaddress);
-	
+
 		/**
 		 * Glue together all parts
 		 */
 		return $this->ldr.implode("", $directory).END_OF_FIELD.implode("", $fields).END_OF_RECORD;
 	}
-    
+
 	/**
 	 * Return formatted
 	 *
@@ -666,11 +666,11 @@ Class Record {
  * Create a MARC Field object
  */
 Class Field {
-	
+
 	/**
 	 * ========== VARIABLE DECLARATIONS ==========
 	 */
-	
+
 	/**
 	 * The tag name of the Field
 	 * @var string
@@ -679,7 +679,7 @@ Class Field {
 	/**
 	 * Value of the first indicator
 	 * @var string
-	 */ 
+	 */
 	var $ind1;
 	/**
 	 * Value of the second indicator
@@ -706,11 +706,11 @@ Class Field {
 	 * @var string
 	 */
 	var $data;
-	
+
 	/**
 	 * ========== ERROR FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Croaking function
 	 *
@@ -721,7 +721,7 @@ Class Field {
 	function _croak($msg) {
 		trigger_error($msg, E_USER_ERROR);
 	}
-	
+
 	/**
 	 * Fuction to issue warnings
 	 *
@@ -734,18 +734,18 @@ Class Field {
 		$this->warn[] = $msg;
 		return $msg;
 	}
-	
+
 	/**
 	 * Return an array of warnings
 	 */
 	function warnings() {
 		return $this->warn;
 	}
-	
+
 	/**
 	 * ========== PROCESSING FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Field init function
 	 *
@@ -755,15 +755,15 @@ Class Field {
 	 */
 	function field() {
 		$args = func_get_args();
-		
+
 		$tagno = array_shift($args);
 		$this->tagno = $tagno;
-		
+
 		// Check if valid tag
 		if(!preg_match("/^[0-9A-Za-z]{3}$/", $tagno)) {
 			return $this->_warn("Tag \"$tagno\" is not a valid tag.");
 		}
-		
+
 		// Check if field is Control field
 		$this->is_control = (preg_match("/^\d+$/", $tagno) && $tagno < 10);
 		if($this->is_control) {
@@ -779,9 +779,9 @@ Class Field {
 				}
 				$this->$indcode = $indicator;
 			}
-			
+
 			$subfields = array_shift($args);
-			
+
 			if(count($subfields) < 1) {
 				return $this->_warn("Field $tagno must have at least one subfield");
 			} else {
@@ -789,7 +789,7 @@ Class Field {
 			}
 		}
 	}
-	
+
 	/**
 	 * Add subfield
 	 *
@@ -809,17 +809,17 @@ Class Field {
 		} else {
 			$this->subfields = array_merge($this->subfields, $args);
 		}
-		
+
 		return count($args)/2;
 	}
-	
+
 	/**
 	 * Return Tag number of Field
 	 */
 	function tagno() {
 		return $this->tagno;
 	}
-	
+
 	/**
 	 * Set/Get Data of Control field
 	 *
@@ -837,7 +837,7 @@ Class Field {
 			return $this->data;
 		}
 	}
-	
+
 	/**
 	 * Get values of indicators
 	 *
@@ -852,7 +852,7 @@ Class Field {
 			$this->_warn("Invalid indicator: $ind");
 		}
 	}
-	
+
 	/**
 	 * Check if Field is Control field
 	 *
@@ -861,7 +861,7 @@ Class Field {
 	function is_control() {
 		return $this->is_control;
 	}
-	
+
 	/**
 	 * Get the value of a subfield
 	 *
@@ -876,7 +876,7 @@ Class Field {
 			return $repeatable ? array(): FALSE;
 		}
 	}
-	
+
 	/**
 	 * Return array of subfields
 	 *
@@ -885,7 +885,7 @@ Class Field {
 	function subfields() {
 		return $this->subfields;
 	}
-	
+
 	/**
 	 * Update Field
 	 *
@@ -912,7 +912,7 @@ Class Field {
 			}
 		}
 	}
-	
+
 	/**
 	 * Replace Field with given Field
 	 *
@@ -931,7 +931,7 @@ Class Field {
 			$this->_croak(sprintf("Argument must be Field-object, but was '%s'", get_class($obj)));
 		}
 	}
-	
+
 	/**
 	 * Clone Field
 	 *
@@ -944,11 +944,11 @@ Class Field {
 			return new Field($this->tagno, $this->ind1, $this->ind2, $this->subfields);
 		}
 	}
-	
+
 	/**
 	 * ========== OUTPUT FUNCTIONS ==========
 	 */
-	
+
 	/**
 	 * Return Field formatted
 	 *
@@ -970,10 +970,10 @@ Class Field {
 			$lines[] = sprintf("%6s _%1s%s", $pre, $subfield, $value);
 			$pre = "";
 		}
-		
+
 		return join("\n", $lines);
 	}
-	
+
 	/**
 	 * Return Field in Raw MARC
 	 *
@@ -991,7 +991,7 @@ Class Field {
 			return $this->ind1.$this->ind2.implode("", $subfields).END_OF_FIELD;
 		}
 	}
-	
+
 	/**
 	 * Return Field as String
 	 *
@@ -1012,7 +1012,7 @@ Class Field {
 		}
 		return implode(" ", $matches);
 	}
-	
+
 }
 
 ?>

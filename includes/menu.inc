@@ -581,7 +581,7 @@ function _menu_translate(&$router_item, $map, $to_arg = FALSE) {
   $router_item['href'] = implode('/', $link_map);
   $router_item['options'] = array();
   _menu_check_access($router_item, $map);
-  
+
   // For performance, don't localize an item the user can't access.
   if ($router_item['access']) {
     _menu_item_localize($router_item, $map);
@@ -1695,7 +1695,7 @@ function menu_cache_clear_all() {
 function menu_rebuild() {
   if (!lock_acquire('menu_rebuild')) {
     // Wait for another request that is already doing this work.
-    // We choose to block here since otherwise the router item may not 
+    // We choose to block here since otherwise the router item may not
     // be avaiable in menu_execute_active_handler() resulting in a 404.
     lock_wait('menu_rebuild');
     return FALSE;
@@ -1706,7 +1706,7 @@ function menu_rebuild() {
   // Clear the menu, page and block caches.
   menu_cache_clear_all();
   _menu_clear_page_cache();
-  
+
   if (defined('MAINTENANCE_MODE')) {
     variable_set('menu_rebuild_needed', TRUE);
   }
@@ -1898,7 +1898,7 @@ function _menu_delete_item($item, $force = FALSE) {
  *   - router_path: The path of the relevant router item.
  *
  * @return
- *   The mlid of the saved menu link, or FALSE if the menu link could not be 
+ *   The mlid of the saved menu link, or FALSE if the menu link could not be
  *   saved.
  */
 function menu_link_save(&$item) {
@@ -2467,22 +2467,6 @@ function _menu_router_build($callbacks) {
   variable_set('menu_masks', $masks);
 
   return $menu;
-}
-
-/**
- * Returns TRUE if a path is external (e.g. http://example.com).
- */
-function menu_path_is_external($path) {
-  // Avoid calling filter_xss_bad_protocol() if there is any slash (/),
-  // hash (#) or question_mark (?) before the colon (:) occurrence - if any - as
-  // this would clearly mean it is not a URL. If the path starts with 2 slashes
-  // then it is always considered an external URL without an explicit protocol
-  // part.
-  $colonpos = strpos($path, ':');
-  return (strpos($path, '//') === 0)
-    || ($colonpos !== FALSE
-      && !preg_match('![/?#]!', substr($path, 0, $colonpos))
-      && filter_xss_bad_protocol($path, FALSE) == check_plain($path));
 }
 
 /**

@@ -198,6 +198,9 @@ SetHandler Drupal_Security_Do_Not_Remove_See_SA_2006_006
 <IfModule mod_php5.c>
   php_flag engine off
 </IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
 # PHP 4, Apache 1.
 <IfModule mod_php4.c>
   php_flag engine off
@@ -595,7 +598,7 @@ function file_save_upload($source, $validators = array(), $dest = FALSE, $replac
   global $user;
   static $upload_cache;
 
-  // Add in our check of the the file name length.
+  // Add our check of the file name length.
   $validators['file_validate_name_length'] = array();
 
   // Return cached objects without processing since the file will have
@@ -895,7 +898,7 @@ function file_save_data($data, $dest, $replace = FILE_EXISTS_RENAME) {
 /**
  * Set the status of a file.
  *
- * @param $file 
+ * @param $file
  *   A Drupal file object.
  * @param $status
  *   A status value to set the file to. One of:
@@ -924,7 +927,7 @@ function file_transfer($source, $headers) {
   if (ob_get_level()) {
     ob_end_clean();
   }
-  
+
   // IE cannot download private files because it cannot store files downloaded
   // over HTTPS in the browser cache. The problem can be solved by sending
   // custom headers to IE. See http://support.microsoft.com/kb/323308/en-us
