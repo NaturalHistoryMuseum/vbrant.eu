@@ -2,17 +2,14 @@
 
 function scratchpad_admin_openids(){
   return array(
-    'http://vbrant.eu/users/alice-heaton/openid' => 'Alice Heaton (http://vbrant.eu/users/alice-heaton/openid)',
-    'http://vbrant.eu/user/57/identity' => 'Ben Scott (http://vbrant.eu/user/57/identity)',
-    'http://vbrant.eu/users/dave-roberts/openid' => 'Dave Roberts (http://vbrant.eu/users/dave-roberts/openid)',
-    'http://vbrant.eu/users/dimitris-koureas/openid' => 'Dimitris Koureas (http://vbrant.eu/users/dimitris-koureas/openid)',
     'http://edwbaker.myopenid.com/' => 'Edward Baker (http://edwbaker.myopenid.com)',
-    'http://vbrant.eu/users/isa-vandevelde/openid' => 'Isa Vandevelde (http://vbrant.eu/users/isa-vandevelde/openid)',
-    'http://vbrant.eu/users/katherine-bouton/openid' => 'Katherine Bouton (http://vbrant.eu/users/katherine-bouton/openid)',
-    'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
-    'http://simon.rycroft.name/' => 'Simon Rycroft (http://simon.rycroft.name/)',
-    'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
-    'http://vsmithuk.myopenid.com/' => 'Vincent Smith (http://vsmithuk.myopenid.com)'
+    'https://vbrant.scratchpads.org/user/57/identity' => 'Ben Scott (https://vbrant.scratchpads.org/user/57/identity)',
+    'https://vbrant.scratchpads.org/users/laurence-livermore/openid' => 'Laurence Livermore (https://vbrant.scratchpads.org/users/laurence-livermore/openid)',
+    'https://vbrant.scratchpads.org/users/vince-smith/openid' => 'Vince Smith (https://vbrant.scratchpads.org/users/vince-smith/openid)',
+    'https://vbrant.scratchpads.org/users/josh-humphries/openid' => 'Josh Humphries (https://vbrant.scratchpads.org/users/josh-humphries/openid)',
+    'https://vbrant.scratchpads.org/users/ginger/openid' => 'Ginger (https://vbrant.scratchpads.org/users/ginger/openid)',
+    'https://vbrant.scratchpads.org/users/robd/openid' => 'Rob Davis (https://vbrant.scratchpads.org/users/robd/openid)',
+
   );
 }
 
